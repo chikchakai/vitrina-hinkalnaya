@@ -38,7 +38,7 @@ const IMENA_DNEY = ['Сегодня', 'Завтра', 'Послезавтра'];
 
 // Состояние формы живёт в модуле: уход на #/adres и возврат ничего не теряют (тупик 14)
 // oplata: 'pri_poluchenii' | 'onlayn' (28.10.2026) — по умолчанию при получении: зеркало старой системы платит так же, без ЮKassa
-const forma = { imya: '', telefon: '', kommentariy: '', kogda: null, slot: null, oplata: 'pri_poluchenii' };
+const forma = { imya: '', telefon: '', kommentariy: '', kogda: null, slot: null, oplata: 'pri_poluchenii', sdacha: '' };
 let chernovikProchitan = false;
 
 let yadro = null;
@@ -224,6 +224,11 @@ export function pokazat(kontejner_, yadro_, parametry) {
         <span class="oformlenie__znak"><svg aria-hidden="true"><use href="#ik-sumka"/></svg></span>
         <div class="oformlenie__oplata-tekst"></div>
       </div>
+      <!-- доставка при получении: с какой купюры сдача — кассир заранее даёт её курьеру (владелец 31.10.2026) -->
+      <label class="pole" data-pole="sdacha" hidden style="margin-top:10px">
+        <span class="pole__metka">Наличными — сдача с</span>
+        <input class="pole__vvod" name="sdacha" inputmode="numeric" maxlength="7" autocomplete="off" placeholder="Без сдачи или картой — пусто">
+      </label>
     </section>
 
     <section class="oformlenie__blok" data-blok="itog">
@@ -326,7 +331,10 @@ function navesitOplatu() {
       : '<b>При получении</b><small>Картой или наличными. Предоплаты нет.</small>';
     const p = niz?.querySelector('.oformlenie__set');
     if (p && navigator.onLine !== false) p.textContent = tekstOplaty();
+    pokazatSdachu();
   };
+  const vvod = kontejner.querySelector('[name=sdacha]');
+  vvod?.addEventListener('input', () => { vvod.value = vvod.value.replace(/\D/g, ''); forma.sdacha = vvod.value; });
   kontejner.querySelectorAll('[data-oplata]').forEach((b) => {
     nazhatie(b, { masshtab: 0.94 });
     b.addEventListener('click', () => {
@@ -350,6 +358,12 @@ function navesitSposob() {
       yadro.obnovitGostya({ sposob });   // → событие 'gost' → obnovitVse()
     });
   });
+}
+
+/** «Сдача с» — только доставке с оплатой при получении. */
+function pokazatSdachu() {
+  const pole = kontejner?.querySelector('[data-pole=sdacha]');
+  if (pole) pole.hidden = !(forma.oplata === 'pri_poluchenii' && sposobSeychas() === 'dostavka');
 }
 
 function sposobSeychas() {
@@ -710,6 +724,7 @@ function obnovitVse() {
   narisovatMesto();
   narisovatMinimum();
   narisovatVremya();
+  pokazatSdachu();
   narisovatVhod();
   narisovatKontakty();
   narisovatItog();
@@ -894,6 +909,7 @@ async function zakazat_() {
       adres: sposob === 'dostavka' ? yadro.gost.adres : null,
       kogda: kogda.tip === 'ko_vremeni' ? new Date(kogda.ms).toISOString() : undefined,
       onlayn: forma.oplata === 'onlayn',
+      sdachaS: forma.oplata === 'pri_poluchenii' ? Number(forma.sdacha) || 0 : 0,
     });
   } catch (oshibka) {
     console.warn('Заказ не ушёл', oshibka);

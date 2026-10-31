@@ -631,6 +631,7 @@ export async function otpravitZakaz(zakaz) {
     telo.deliveryIntercom = adres.domofon || undefined;
     telo.deliveryCourierComment = adres.kurieru || undefined;
     if (typeof zakaz.cenaDostavki === 'number') telo.deliveryPrice = zakaz.cenaDostavki;
+    if (zakaz.sdachaS > 0) telo.sdachaS = Math.round(zakaz.sdachaS);   // сдача с какой купюры (31.10.2026)
     // точка адреса: по ней сервер сам находит зону, цену доставки и минимум (26.10.2026)
     if (Number.isFinite(adres.shirota) && Number.isFinite(adres.dolgota)) { telo.deliveryLat = adres.shirota; telo.deliveryLng = adres.dolgota; }
   }
