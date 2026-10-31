@@ -1085,6 +1085,7 @@ export async function podskazatAdres(tekst, opcii = {}) {
         kratko: String(x.value).replace(/^Россия, /, ''),
         shirota: parseFloat(x.data.geo_lat),
         dolgota: parseFloat(x.data.geo_lon),
+        dom: Boolean(x.data.house),
       }))
       .filter((x) => Number.isFinite(x.shirota) && Number.isFinite(x.dolgota));
     zapomnitAdresa(klyuch, podskazki);

@@ -702,10 +702,19 @@ async function vybratAdres(p, vvod, podskazka, spisok, itog) {
   if (!s) return;
   const { yadro } = s;
   vibro(8);
-  vvod.value = p.kratko;
-  vvod.blur();
   spisok.innerHTML = '';
   itog.innerHTML = '';
+  // без дома точка — центр города и чужая зона (31.10.2026: «г Балашиха» с Ситникова ушла с Горенского в Центр);
+  // сохранённый адрес без пометки dom: нет ни одной цифры — значит, и дома нет
+  if (p.dom === false || (p.dom == null && !/\d/.test(p.kratko))) {
+    vvod.value = `${p.kratko}, `;
+    s.naydenoDlya = vvod.value.trim();
+    vvod.focus({ preventScroll: true });
+    podskazka.textContent = 'Допишите улицу и дом — без них не понять, какая кухня ближе';
+    return;
+  }
+  vvod.value = p.kratko;
+  vvod.blur();
   const ekran = s;
   const moy = s.vyborAdresa = (s.vyborAdresa || 0) + 1;
   podskazka.textContent = 'Проверяем, возим ли сюда…';
